@@ -1,0 +1,182 @@
+---
+title: "Getting started with tidysd"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with tidysd}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 4, dpi = 120)
+```
+
+```{r setup}
+library(tidysd)
+```
+
+## Three layers, one verb
+
+A `tidysd` model is not an object you build up; it is three plain, immutable
+values that only meet inside `simulate()`.
+
+```
+sd_structure()    what exists, how it is wired      (no math)
+sd_equations()    functional forms                  (symbolic)
+sd_parameters()   the numbers and data
+```
+
+The split is not cosmetic. It is what lets you keep a structure and swap the
+functional form, or keep both and swap every number, without editing a line of
+the other two.
+
+## The smallest complete model
+
+One stock, one outflow proportional to the gap between the stock and a goal:
+a cup of tea cooling toward room temperature.
+
+```{r teacup}
+teacup_struct <- sd_structure(
+  meta(name = "Teacup cooling"),
+  stock("TeacupTemperature", units = "degF"),
+  flow("heat_loss_to_room", from = "TeacupTemperature", to = .sink,
+       units = "degF/minute")
+)
+
+teacup_eqns <- sd_equations(
+  heat_loss_to_room ~ (TeacupTemperature - room_temperature) / characteristic_time
+)
+
+teacup_pars <- sd_parameters(
+  constant(room_temperature = 70, characteristic_time = 10),
+  initial(TeacupTemperature = 180)
+)
+
+out <- simulate(teacup_struct, teacup_eqns, teacup_pars,
+                spec = sim_spec(start = 0, stop = 30, dt = 0.125,
+                                method = "euler", time_unit = "minute"))
+out
+```
+
+Every run returns one long tibble: `time`, `variable`, `value`, `unit`, `type`,
+plus a column per subscript dimension and, when you ask for them, `scenario`
+and `source`. That is the whole output contract, so `ggplot2` comes free.
+
+```{r teacup-plot}
+autoplot(out)
+```
+
+## What goes in which layer
+
+|Item                                              | Structure | Equations | Parameters |
+|:-------------------------------------------------|:---------:|:---------:|:----------:|
+|Stock / flow / aux / lookup / input exists; units  |     x     |           |            |
+|Flow `from` / `to` wiring                          |     x     |           |            |
+|Flow-rate and auxiliary formulas                   |           |     x     |            |
+|Choice of functional form                          |           |     x     |            |
+|Derived initial-value form (`init(S) ~ pop - I0`)  |           |     x     |            |
+|Constant and stock-initial values                  |           |           |     x      |
+|Lookup point data; input series                    |           |           |     x      |
+
+Each stock's initial value comes from exactly one place: a number in
+`initial()`, or a formula via `init()` in the equations. Asking for both is an
+error, and so is asking for neither.
+
+Numeric literals *are* allowed on an equation right-hand side. A `1 - x/K` or
+an `ifelse` threshold is structure, not a parameter.
+
+## Order does not matter
+
+Equations resolve into a dependency graph when the model is bound, so you can
+write them in whatever order reads best.
+
+```{r order}
+struct <- sd_structure(
+  meta(name = "S-shaped growth"),
+  stock("Stock", units = "widgets", non_negative = TRUE),
+  aux("availability"), aux("effect"), aux("growth_rate"),
+  flow("net_flow", from = .source, to = "Stock", units = "widgets/time")
+)
+
+# written back to front on purpose
+eqns <- sd_equations(
+  net_flow     ~ Stock * growth_rate,
+  growth_rate  ~ ref_growth_rate * effect,
+  effect       ~ availability / ref_availability,
+  availability ~ 1 - Stock / capacity
+)
+
+pars <- sd_parameters(
+  constant(capacity = 10000, ref_growth_rate = 0.10),
+  reference(ref_availability = 1),
+  initial(Stock = 100)
+)
+
+out <- simulate(struct, eqns, pars,
+                spec = sim_spec(0, 100, 0.25, time_unit = "time",
+                                check_units = FALSE))
+autoplot(out, vars = c("Stock", "net_flow"))
+```
+
+A genuinely simultaneous loop is reported as one, with the cycle that caused it,
+rather than silently resolved.
+
+## Immutability, and variants
+
+Layers never change in place. `update()` returns a new object, which is how you
+write a variant.
+
+```{r update}
+sir <- sd_example("sir")
+
+# frequency-dependent transmission, as shipped ...
+deparse(sir$equations$eqns$lambda$rhs)
+
+# ... swapped for density-dependent, structure and parameters untouched
+dd <- update(sir$equations, lambda ~ contact_rate * infectivity * I)
+deparse(dd$eqns$lambda$rhs)
+
+# and the original is exactly as it was
+deparse(sir$equations$eqns$lambda$rhs)
+```
+
+The same applies to parameters:
+
+```{r update-pars}
+faster <- update(sir$parameters, constant(recovery_time = 2))
+sir$parameters$constants$recovery_time
+faster$constants$recovery_time
+```
+
+## Checking a model without running it
+
+`sd_validate()` does exactly the binding and validation that `simulate()` does,
+and hands back the bound model.
+
+```{r validate}
+bound <- sd_validate(sir$structure, sir$equations, sir$parameters, sir$spec)
+bound
+```
+
+## Units
+
+Units are declared in the structure layer and nowhere else. Constants carry
+none, so the only check the grammar can honestly make is the structural one: a
+flow's units must be the units of the stock it moves, per unit of simulation
+time. Everything unspecified is simply not checked.
+
+```{r units}
+bad <- sd_structure(
+  stock("Population", units = "people"),
+  flow("births", from = .source, to = "Population", units = "people")  # missing /year
+)
+tryCatch(tidysd:::check_flow_units(bad, "year"), warning = conditionMessage)
+```
+
+## Where to go next
+
+* `vignette("builtins")` -- delays, smoothing, and shaping functions.
+* `vignette("subscripts")` -- arrayed models over named dimensions.
+* `vignette("data")` -- exogenous drivers, observed series and `calibrate()`.
+* `vignette("catalogue")` -- all twenty-two worked models.

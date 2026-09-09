@@ -1,0 +1,31 @@
+Package: tidysd
+Title: A Tidy Grammar for System Dynamics Modelling
+Version: 0.1.0
+Authors@R: person("Rayhan Ali", "Rachman", email = "rayhanalirachman@gmail.com", role = c("aut", "cre"))
+Description: Specify stock-and-flow system dynamics models as three independent
+    layers -- structure (what exists and how it is wired), equations (functional
+    forms) and parameters (numbers and data) -- and simulate them with one verb.
+    Supports subscripted (arrayed) models, graphical lookup functions, exogenous
+    data drivers, Vensim-style delay and smoothing built-ins, scenario runs,
+    least-squares calibration and tidy long-format output with 'ggplot2' methods.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1)
+Imports:
+    rlang (>= 1.0.0),
+    tibble,
+    ggplot2,
+    stats,
+    utils
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    dplyr,
+    readr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://rayhanalirachman.github.io/tidySD/, https://github.com/rayhanalirachman/tidySD
+BugReports: https://github.com/rayhanalirachman/tidySD/issues
+LazyData: true
+Config/roxygen2/version: 8.1.0

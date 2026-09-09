@@ -1,0 +1,13 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^data-raw$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+^LICENSE\.md$
+^\.DS_Store$
+^cran-comments\.md$
+^CODE_OF_CONDUCT\.md$
+^MODELS\.md$

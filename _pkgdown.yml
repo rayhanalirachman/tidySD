@@ -1,0 +1,92 @@
+url: https://rayhanalirachman.github.io/tidySD/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#12303B"
+    base_font: {google: "Inter"}
+    heading_font: {google: "Inter"}
+    code_font: {google: "JetBrains Mono"}
+
+home:
+  title: A tidy grammar for system dynamics modelling in R
+  description: >
+    Specify a stock-and-flow model as three independent layers -- structure,
+    equations, parameters -- and simulate it with one verb.
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [search, github]
+
+reference:
+- title: The three layers
+  desc: >
+    What exists and how it is wired; the functional forms; the numbers and data.
+  contents:
+  - sd_structure
+  - sd_equations
+  - sd_parameters
+
+- subtitle: Structure elements
+  contents:
+  - meta
+  - stock
+  - flow
+  - lookup
+  - input
+  - subscripts
+  - .source
+  - aux
+  - sd_variables
+
+- subtitle: Equation elements
+  contents:
+  - init
+  - update.sd_equations
+  - sd_builtins
+
+- subtitle: Parameter elements
+  contents:
+  - constant
+  - reference
+  - initial
+  - lookup_data
+  - input_series
+  - update.sd_parameters
+
+- title: Running a model
+  contents:
+  - simulate
+  - sim_spec
+  - scenarios
+  - sd_validate
+  - calibrate
+
+- title: Looking at a model
+  contents:
+  - autoplot.sd_result
+  - sd_diagram
+  - autoplot.sd_diagram
+
+- title: The catalogue
+  contents:
+  - sd_example
+  - sd_example_run
+  - boarding_school_flu
+  - town_population
+  - global_emissions_synthetic
+
+- title: Package
+  contents:
+  - tidysd
+
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - tidysd
+  - builtins
+  - subscripts
+  - data
+  - catalogue

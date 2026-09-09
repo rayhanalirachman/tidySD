@@ -2,7 +2,17 @@
 output: github_document
 ---
 
-
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  dpi = 150,
+  fig.width = 8,
+  fig.height = 4.5
+)
+```
 
 # tidysd <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
@@ -41,8 +51,7 @@ identical, non-masking alias if you would rather not shadow it.
 
 ## A model in three layers
 
-
-``` r
+```{r sir}
 library(tidysd)
 
 sir_struct <- sd_structure(
@@ -74,40 +83,18 @@ spec <- sim_spec(start = 0, stop = 100, dt = 0.125,
 
 out <- simulate(sir_struct, sir_eqns, sir_pars, spec = spec)
 out
-#> # SIR
-#> # A tibble: 5,607 x 5
-#>     time variable value unit   type 
-#>    <dbl> <chr>    <dbl> <chr>  <chr>
-#>  1 0     S         999  people stock
-#>  2 0.125 S         999. people stock
-#>  3 0.25  S         999. people stock
-#>  4 0.375 S         998. people stock
-#>  5 0.5   S         998. people stock
-#>  6 0.625 S         998. people stock
-#>  7 0.75  S         998. people stock
-#>  8 0.875 S         997. people stock
-#>  9 1     S         997. people stock
-#> 10 1.12  S         997. people stock
-#> # i 5,597 more rows
 ```
 
 Output is one long tibble, so plotting comes free:
 
-
-``` r
+```{r sir-plot}
 autoplot(out)
 ```
-
-<div class="figure">
-<img src="man/figures/README-sir-plot-1.png" alt="plot of chunk sir-plot" width="100%" />
-<p class="caption">plot of chunk sir-plot</p>
-</div>
 
 Because the layers are independent, swapping the transmission form touches the
 equations and nothing else:
 
-
-``` r
+```{r swap}
 sir_dd <- update(sir_eqns, lambda ~ contact_rate * infectivity * I)
 ```
 
@@ -144,8 +131,7 @@ Delays and smoothing — `delayN()`, `smoothN()`, the pipeline delay
 
 ## Scenarios, data and calibration
 
-
-``` r
+```{r scenarios, eval = FALSE}
 # many runs, one call
 simulate(struct, eqns, pars, spec = spec,
          scenarios = scenarios(base = list(),
@@ -169,23 +155,8 @@ calibrate(struct, eqns, pars, spec = spec, observed = cases,
 Twenty-two worked models ship with the package, each exercising a different
 corner of the grammar. Run any of them by number or name:
 
-
-``` r
+```{r catalogue}
 sd_example_ids()
-#> # A tibble: 23 x 2
-#>    number name           
-#>     <int> <chr>          
-#>  1      1 customer_growth
-#>  2      2 s_shaped_growth
-#>  3      3 overshoot      
-#>  4      4 solow          
-#>  5      5 sir            
-#>  6      6 bass           
-#>  7      7 cohort_sir     
-#>  8      8 material_delay 
-#>  9      9 teacup         
-#> 10     10 lotka_volterra 
-#> # i 13 more rows
 out <- sd_example_run("lotka_volterra")
 ```
 
