@@ -31,6 +31,9 @@ First release.
   columns.
 - Euler and RK4 integrators, `saveat` thinning, `non_negative` stocks,
   and a flow-versus-stock unit check.
+- [`sd_import()`](https://rayhanalirachman.github.io/tidySD/reference/sd_import.md)
+  reads an XMILE file (`.xmile`, `.stmx`) into the three layers plus a
+  [`sim_spec()`](https://rayhanalirachman.github.io/tidySD/reference/sim_spec.md).
 - Real data:
   [`input_series()`](https://rayhanalirachman.github.io/tidySD/reference/input_series.md)
   drivers, `observed =` overlays, and

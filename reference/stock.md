@@ -6,7 +6,14 @@ it.
 ## Usage
 
 ``` r
-stock(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL)
+stock(
+  name,
+  units = NULL,
+  dims = NULL,
+  non_negative = FALSE,
+  label = NULL,
+  doc = NULL
+)
 ```
 
 ## Arguments
@@ -30,6 +37,10 @@ stock(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL)
 - label:
 
   Optional human-readable label.
+
+- doc:
+
+  Optional one-line description, surfaced by \[sd_equation_table()\].
 
 ## Value
 

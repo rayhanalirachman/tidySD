@@ -44,6 +44,9 @@ flow("births", from = .source, to = "Population")
 #> $label
 #> NULL
 #> 
+#> $doc
+#> NULL
+#> 
 #> attr(,"class")
 #> [1] "sd_flow"    "sd_element"
 ```

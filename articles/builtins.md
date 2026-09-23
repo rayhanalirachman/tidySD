@@ -162,16 +162,16 @@ stages never appear in the output.
 ``` r
 
 sd_variables(sd_example("smooth")$structure)
-#> # A tibble: 7 × 6
-#>   name            type  units dims  from  to   
-#>   <chr>           <chr> <chr> <chr> <chr> <chr>
-#> 1 input           aux   NA    NA    NA    NA   
-#> 2 adjustment_time aux   NA    NA    NA    NA   
-#> 3 smooth_1        aux   NA    NA    NA    NA   
-#> 4 smooth_1i       aux   NA    NA    NA    NA   
-#> 5 smooth_3        aux   NA    NA    NA    NA   
-#> 6 smooth_3i       aux   NA    NA    NA    NA   
-#> 7 smooth_n        aux   NA    NA    NA    NA
+#> # A tibble: 7 × 7
+#>   name            type  units dims  from  to    doc  
+#>   <chr>           <chr> <chr> <chr> <chr> <chr> <chr>
+#> 1 input           aux   NA    NA    NA    NA    NA   
+#> 2 adjustment_time aux   NA    NA    NA    NA    NA   
+#> 3 smooth_1        aux   NA    NA    NA    NA    NA   
+#> 4 smooth_1i       aux   NA    NA    NA    NA    NA   
+#> 5 smooth_3        aux   NA    NA    NA    NA    NA   
+#> 6 smooth_3i       aux   NA    NA    NA    NA    NA   
+#> 7 smooth_n        aux   NA    NA    NA    NA    NA
 unique(sd_example_run("smooth")$variable)
 #> [1] "input"           "adjustment_time" "smooth_1"        "smooth_1i"      
 #> [5] "smooth_3"        "smooth_3i"       "smooth_n"

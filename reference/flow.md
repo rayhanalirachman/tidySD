@@ -7,7 +7,15 @@ backwards – a biflow.
 ## Usage
 
 ``` r
-flow(name, from = .source, to = .sink, units = NULL, dims = NULL, label = NULL)
+flow(
+  name,
+  from = .source,
+  to = .sink,
+  units = NULL,
+  dims = NULL,
+  label = NULL,
+  doc = NULL
+)
 ```
 
 ## Arguments
@@ -31,6 +39,10 @@ flow(name, from = .source, to = .sink, units = NULL, dims = NULL, label = NULL)
 - label:
 
   Optional human-readable label.
+
+- doc:
+
+  Optional one-line description, surfaced by \[sd_equation_table()\].
 
 ## Value
 

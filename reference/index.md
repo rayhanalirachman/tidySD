@@ -33,6 +33,8 @@ data.
   : Declare an auxiliary variable
 - [`sd_variables()`](https://rayhanalirachman.github.io/tidySD/reference/sd_variables.md)
   : The variables a structure declares
+- [`sd_equation_table()`](https://rayhanalirachman.github.io/tidySD/reference/sd_equation_table.md)
+  : The equation table: every variable with its formula
 
 ### Equation elements
 
@@ -67,10 +69,24 @@ data.
   : Simulation settings
 - [`scenarios()`](https://rayhanalirachman.github.io/tidySD/reference/scenarios.md)
   : Named constant overrides for a multi-scenario run
+- [`sd_sweep()`](https://rayhanalirachman.github.io/tidySD/reference/sd_sweep.md)
+  : Sweep constants: Monte Carlo draws or a full-factorial grid
 - [`sd_validate()`](https://rayhanalirachman.github.io/tidySD/reference/sd_validate.md)
   : Bind the three layers without integrating
 - [`calibrate()`](https://rayhanalirachman.github.io/tidySD/reference/calibrate.md)
   : Estimate free constants from observed data
+
+## Combining models
+
+- [`sd_compose()`](https://rayhanalirachman.github.io/tidySD/reference/sd_compose.md)
+  : Compose two models into one
+- [`sd_stratify()`](https://rayhanalirachman.github.io/tidySD/reference/sd_stratify.md)
+  : Stratify a model over a group dimension
+
+## Importing a model
+
+- [`sd_import()`](https://rayhanalirachman.github.io/tidySD/reference/sd_import.md)
+  : Import a model from an XMILE or Vensim file
 
 ## Looking at a model
 
@@ -82,6 +98,8 @@ data.
 - [`autoplot(`*`<sd_diagram>`*`)`](https://rayhanalirachman.github.io/tidySD/reference/autoplot.sd_diagram.md)
   [`plot(`*`<sd_diagram>`*`)`](https://rayhanalirachman.github.io/tidySD/reference/autoplot.sd_diagram.md)
   : Plot a model diagram
+- [`sd_export()`](https://rayhanalirachman.github.io/tidySD/reference/sd_export.md)
+  : Write a bound model out as XMILE
 
 ## The catalogue
 

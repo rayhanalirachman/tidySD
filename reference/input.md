@@ -7,7 +7,7 @@ the parameter layer.
 ## Usage
 
 ``` r
-input(name, units = NULL, dims = NULL, label = NULL)
+input(name, units = NULL, dims = NULL, label = NULL, doc = NULL)
 ```
 
 ## Arguments
@@ -27,6 +27,10 @@ input(name, units = NULL, dims = NULL, label = NULL)
 - label:
 
   Optional human-readable label.
+
+- doc:
+
+  Optional one-line description, surfaced by \[sd_equation_table()\].
 
 ## Value
 

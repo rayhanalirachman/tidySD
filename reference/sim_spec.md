@@ -10,7 +10,7 @@ sim_spec(
   start = 0,
   stop = 100,
   dt = 1,
-  method = c("euler", "rk4"),
+  method = c("euler", "rk4", "lsoda", "rk45"),
   time_unit = NULL,
   saveat = NULL,
   check_units = TRUE
@@ -29,7 +29,13 @@ sim_spec(
 
 - method:
 
-  \`"euler"\` or \`"rk4"\`.
+  \`"euler"\` or \`"rk4"\` (fixed step, \`dt\`), or \`"lsoda"\` /
+  \`"rk45"\` to hand the integration to the 'deSolve' package: adaptive
+  step size, and in \`"lsoda"\`'s case automatic stiff/non-stiff
+  switching. With those two, \`dt\` only sets the output grid; the
+  solver picks its own steps, so the queue built-ins \`delay_fixed()\`
+  and \`previous()\` are not available and discontinuities are not
+  treated specially.
 
 - time_unit:
 
@@ -53,4 +59,7 @@ An object of class \`sim_spec\`.
 ``` r
 sim_spec(start = 0, stop = 100, dt = 0.125, method = "euler", time_unit = "day")
 #> <sim_spec> 0 -> 100, dt = 0.125, euler (day)
+## adaptive, stiff-capable, via deSolve
+sim_spec(start = 0, stop = 100, dt = 0.125, method = "lsoda", time_unit = "day")
+#> <sim_spec> 0 -> 100, dt = 0.125, lsoda (day)
 ```

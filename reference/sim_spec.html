@@ -53,7 +53,7 @@ step and method, and how often to save.</p>
 <span>  start <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  stop <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  dt <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"euler"</span>, <span class="st">"rk4"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"euler"</span>, <span class="st">"rk4"</span>, <span class="st">"lsoda"</span>, <span class="st">"rk45"</span><span class="op">)</span>,</span>
 <span>  time_unit <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  saveat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  check_units <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -73,7 +73,12 @@ step and method, and how often to save.</p>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>`"euler"` or `"rk4"`.</p></dd>
+<dd><p>`"euler"` or `"rk4"` (fixed step, `dt`), or `"lsoda"` /
+`"rk45"` to hand the integration to the 'deSolve' package: adaptive step
+size, and in `"lsoda"`'s case automatic stiff/non-stiff switching. With
+those two, `dt` only sets the output grid; the solver picks its own steps,
+so the queue built-ins `delay_fixed()` and `previous()` are not available
+and discontinuities are not treated specially.</p></dd>
 
 
 <dt id="arg-time-unit">time_unit<a class="anchor" aria-label="anchor" href="#arg-time-unit"></a></dt>
@@ -99,6 +104,9 @@ it moves.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">sim_spec</span><span class="op">(</span>start <span class="op">=</span> <span class="fl">0</span>, stop <span class="op">=</span> <span class="fl">100</span>, dt <span class="op">=</span> <span class="fl">0.125</span>, method <span class="op">=</span> <span class="st">"euler"</span>, time_unit <span class="op">=</span> <span class="st">"day"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_spec&gt; 0 -&gt; 100, dt = 0.125, euler (day)</span>
+<span class="r-in"><span><span class="co">## adaptive, stiff-capable, via deSolve</span></span></span>
+<span class="r-in"><span><span class="fu">sim_spec</span><span class="op">(</span>start <span class="op">=</span> <span class="fl">0</span>, stop <span class="op">=</span> <span class="fl">100</span>, dt <span class="op">=</span> <span class="fl">0.125</span>, method <span class="op">=</span> <span class="st">"lsoda"</span>, time_unit <span class="op">=</span> <span class="st">"day"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_spec&gt; 0 -&gt; 100, dt = 0.125, lsoda (day)</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

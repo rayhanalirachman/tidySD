@@ -14,7 +14,8 @@ lookup(
   out_units = NULL,
   interp = c("linear", "constant"),
   range = c("clamp", "extend", "na"),
-  label = NULL
+  label = NULL,
+  doc = NULL
 )
 ```
 
@@ -46,6 +47,10 @@ lookup(
 - label:
 
   Optional human-readable label.
+
+- doc:
+
+  Optional one-line description, surfaced by \[sd_equation_table()\].
 
 ## Value
 
