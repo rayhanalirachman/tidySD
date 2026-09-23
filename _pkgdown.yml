@@ -65,6 +65,11 @@ reference:
   - sd_validate
   - calibrate
 
+- title: Combining models
+  contents:
+  - sd_compose
+  - sd_stratify
+
 - title: Importing a model
   contents:
   - sd_import
