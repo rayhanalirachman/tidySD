@@ -4,7 +4,15 @@
 \alias{flow}
 \title{Declare a flow (rate)}
 \usage{
-flow(name, from = .source, to = .sink, units = NULL, dims = NULL, label = NULL)
+flow(
+  name,
+  from = .source,
+  to = .sink,
+  units = NULL,
+  dims = NULL,
+  label = NULL,
+  doc = NULL
+)
 }
 \arguments{
 \item{name}{Name of the flow.}
@@ -16,6 +24,8 @@ flow(name, from = .source, to = .sink, units = NULL, dims = NULL, label = NULL)
 \item{dims}{Character vector of subscript dimensions.}
 
 \item{label}{Optional human-readable label.}
+
+\item{doc}{Optional one-line description, surfaced by [sd_equation_table()].}
 }
 \value{
 An `sd_element` to be passed to [sd_structure()].

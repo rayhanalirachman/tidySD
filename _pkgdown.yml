@@ -39,6 +39,7 @@ reference:
   - .source
   - aux
   - sd_variables
+  - sd_equation_table
 
 - subtitle: Equation elements
   contents:
@@ -60,14 +61,20 @@ reference:
   - simulate
   - sim_spec
   - scenarios
+  - sd_sweep
   - sd_validate
   - calibrate
+
+- title: Importing a model
+  contents:
+  - sd_import
 
 - title: Looking at a model
   contents:
   - autoplot.sd_result
   - sd_diagram
   - autoplot.sd_diagram
+  - sd_export
 
 - title: The catalogue
   contents:

@@ -15,6 +15,8 @@ First release.
   constants and `%*%` contraction; subscripts come back as output columns.
 * Euler and RK4 integrators, `saveat` thinning, `non_negative` stocks, and a
   flow-versus-stock unit check.
+* `sd_import()` reads an XMILE file (`.xmile`, `.stmx`) into the three layers
+  plus a `sim_spec()`.
 * Real data: `input_series()` drivers, `observed =` overlays, and `calibrate()`
   for bounded least-squares estimation of free constants.
 * Tidy long-format output with `autoplot()`, `summary()` and `print()` methods,

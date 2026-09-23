@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0">
+  <header>
+    <vendor>tidysd</vendor>
+    <product version="1.0">tidysd</product>
+    <name>SIR</name>
+  </header>
+  <sim_specs method="Euler" time_units="Days">
+    <start>0</start>
+    <stop>60</stop>
+    <dt>0.25</dt>
+  </sim_specs>
+  <model>
+    <variables>
+      <stock name="Susceptible">
+        <eqn>999</eqn>
+        <units>people</units>
+        <outflow>infection rate</outflow>
+        <non_negative/>
+      </stock>
+      <stock name="Infected">
+        <eqn>1</eqn>
+        <units>people</units>
+        <inflow>infection rate</inflow>
+        <outflow>recovery rate</outflow>
+      </stock>
+      <stock name="Recovered">
+        <eqn>0</eqn>
+        <units>people</units>
+        <inflow>recovery rate</inflow>
+      </stock>
+      <flow name="infection rate">
+        <eqn>Susceptible * force of infection</eqn>
+        <units>people/Days</units>
+      </flow>
+      <flow name="recovery rate">
+        <eqn>Infected / recovery time</eqn>
+        <units>people/Days</units>
+      </flow>
+      <aux name="force of infection">
+        <eqn>contact rate * infectivity * Infected / total population</eqn>
+      </aux>
+      <aux name="total population">
+        <eqn>Susceptible + Infected + Recovered</eqn>
+        <units>people</units>
+      </aux>
+      <aux name="contact rate">
+        <eqn>6</eqn>
+      </aux>
+      <aux name="infectivity">
+        <eqn>0.25</eqn>
+      </aux>
+      <aux name="recovery time">
+        <eqn>MAX(1, 2)</eqn>
+        <units>Days</units>
+      </aux>
+    </variables>
+    <views>
+      <view><stock name="Susceptible" x="100" y="100" color="blue"/></view>
+    </views>
+  </model>
+</xmile>

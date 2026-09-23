@@ -11,7 +11,8 @@ lookup(
   out_units = NULL,
   interp = c("linear", "constant"),
   range = c("clamp", "extend", "na"),
-  label = NULL
+  label = NULL,
+  doc = NULL
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ and diagramming only).}
 `"extend"` (linear extrapolation) or `"na"`.}
 
 \item{label}{Optional human-readable label.}
+
+\item{doc}{Optional one-line description, surfaced by [sd_equation_table()].}
 }
 \value{
 An `sd_element` to be passed to [sd_structure()].

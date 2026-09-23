@@ -4,7 +4,14 @@
 \alias{stock}
 \title{Declare a stock (level)}
 \usage{
-stock(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL)
+stock(
+  name,
+  units = NULL,
+  dims = NULL,
+  non_negative = FALSE,
+  label = NULL,
+  doc = NULL
+)
 }
 \arguments{
 \item{name}{Name of the stock.}
@@ -16,6 +23,8 @@ stock(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL)
 \item{non_negative}{If `TRUE`, the stock is clamped at zero after each step.}
 
 \item{label}{Optional human-readable label.}
+
+\item{doc}{Optional one-line description, surfaced by [sd_equation_table()].}
 }
 \value{
 An `sd_element` to be passed to [sd_structure()].

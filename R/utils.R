@@ -27,8 +27,9 @@ is_valid_name <- function(x) {
 ## Drop a one-column matrix (the result of `%*%`) back to a plain vector so
 ## that downstream element-wise arithmetic stays vector-shaped.
 drop_matrix <- function(v) {
-  if (is.matrix(v) && ncol(v) == 1L) {
-    nm <- rownames(v)
+  d <- dim(v)
+  if (length(d) == 2L && d[2L] == 1L) {
+    nm <- dimnames(v)[[1L]]
     v <- as.vector(v)
     if (!is.null(nm)) names(v) <- nm
   }

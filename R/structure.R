@@ -55,11 +55,13 @@ subscripts <- function(...) {
 #' @param dims Character vector of subscript dimensions the stock is arrayed over.
 #' @param non_negative If `TRUE`, the stock is clamped at zero after each step.
 #' @param label Optional human-readable label.
+#' @param doc Optional one-line description, surfaced by [sd_equation_table()].
 #' @return An `sd_element` to be passed to [sd_structure()].
 #' @export
-stock <- function(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL) {
+stock <- function(name, units = NULL, dims = NULL, non_negative = FALSE, label = NULL,
+                  doc = NULL) {
   new_element("stock", name = name, units = units, dims = dims,
-              non_negative = isTRUE(non_negative), label = label)
+              non_negative = isTRUE(non_negative), label = label, doc = doc)
 }
 
 #' Declare a flow (rate)
@@ -73,10 +75,11 @@ stock <- function(name, units = NULL, dims = NULL, non_negative = FALSE, label =
 #' @param units Unit string, e.g. `"people/day"`.
 #' @param dims Character vector of subscript dimensions.
 #' @param label Optional human-readable label.
+#' @param doc Optional one-line description, surfaced by [sd_equation_table()].
 #' @return An `sd_element` to be passed to [sd_structure()].
 #' @export
 flow <- function(name, from = .source, to = .sink, units = NULL, dims = NULL,
-                 label = NULL) {
+                 label = NULL, doc = NULL) {
   chk <- function(x, what) {
     if (is_boundary(x)) return(x)
     if (!is.character(x) || length(x) != 1L)
@@ -84,7 +87,7 @@ flow <- function(name, from = .source, to = .sink, units = NULL, dims = NULL,
     x
   }
   new_element("flow", name = name, from = chk(from, "from"), to = chk(to, "to"),
-              units = units, dims = dims, label = label)
+              units = units, dims = dims, label = label, doc = doc)
 }
 
 #' Declare an auxiliary variable
@@ -96,11 +99,12 @@ flow <- function(name, from = .source, to = .sink, units = NULL, dims = NULL,
 #' @param units Unit string.
 #' @param dims Character vector of subscript dimensions.
 #' @param label Optional human-readable label.
+#' @param doc Optional one-line description, surfaced by [sd_equation_table()].
 #' @return An `sd_element` to be passed to [sd_structure()].
 #' @rdname aux-variable
 #' @export
-aux <- function(name, units = NULL, dims = NULL, label = NULL) {
-  new_element("aux", name = name, units = units, dims = dims, label = label)
+aux <- function(name, units = NULL, dims = NULL, label = NULL, doc = NULL) {
+  new_element("aux", name = name, units = units, dims = dims, label = label, doc = doc)
 }
 
 #' Declare a graphical (lookup) function
@@ -118,15 +122,17 @@ aux <- function(name, units = NULL, dims = NULL, label = NULL) {
 #' @param range `"clamp"` (hold the end values, the Vensim default) or
 #'   `"extend"` (linear extrapolation) or `"na"`.
 #' @param label Optional human-readable label.
+#' @param doc Optional one-line description, surfaced by [sd_equation_table()].
 #' @return An `sd_element` to be passed to [sd_structure()].
 #' @export
 lookup <- function(name, input = NULL, in_units = NULL, out_units = NULL,
                    interp = c("linear", "constant"),
-                   range = c("clamp", "extend", "na"), label = NULL) {
+                   range = c("clamp", "extend", "na"), label = NULL, doc = NULL) {
   interp <- match.arg(interp)
   range <- match.arg(range)
   new_element("lookup", name = name, input = input, in_units = in_units,
-              out_units = out_units, interp = interp, range = range, label = label)
+              out_units = out_units, interp = interp, range = range, label = label,
+              doc = doc)
 }
 
 #' Declare an exogenous data driver
@@ -139,10 +145,11 @@ lookup <- function(name, input = NULL, in_units = NULL, out_units = NULL,
 #' @param units Unit string.
 #' @param dims Character vector of subscript dimensions.
 #' @param label Optional human-readable label.
+#' @param doc Optional one-line description, surfaced by [sd_equation_table()].
 #' @return An `sd_element` to be passed to [sd_structure()].
 #' @export
-input <- function(name, units = NULL, dims = NULL, label = NULL) {
-  new_element("input", name = name, units = units, dims = dims, label = label)
+input <- function(name, units = NULL, dims = NULL, label = NULL, doc = NULL) {
+  new_element("input", name = name, units = units, dims = dims, label = label, doc = doc)
 }
 
 #' The structure layer: what exists and how it is wired
@@ -240,7 +247,8 @@ var_length <- function(struct, v) {
 #' @param structure An [sd_structure()] object.
 #' @param type Optional character vector to filter by
 #'   (`"stock"`, `"flow"`, `"aux"`, `"lookup"`, `"input"`).
-#' @return A tibble with columns `name`, `type`, `units`, `dims`, `from`, `to`.
+#' @return A tibble with columns `name`, `type`, `units`, `dims`, `from`, `to`,
+#'   `doc`.
 #' @examples
 #' sd_variables(sd_example("sir")$structure)
 #' sd_variables(sd_example("sir")$structure, "stock")
@@ -259,6 +267,50 @@ sd_variables <- function(structure, type = NULL) {
     from = vapply(v, function(z) if (is.null(z$from)) NA_character_ else
       fmt_target(z$from), character(1)),
     to = vapply(v, function(z) if (is.null(z$to)) NA_character_ else
-      fmt_target(z$to), character(1))
+      fmt_target(z$to), character(1)),
+    doc = vapply(v, function(z) z$doc %||% NA_character_, character(1))
   )
+}
+
+#' The equation table: every variable with its formula
+#'
+#' One row per declared variable (plus any constant the parameter layer adds),
+#' with the equation deparsed back to text, its units and its `doc =` string.
+#' It is [sd_variables()] with the equation layer joined on.
+#'
+#' @param structure An [sd_structure()] object.
+#' @param equations An [sd_equations()] object.
+#' @param parameters An [sd_parameters()] object; supplies stock initial values
+#'   and constants. Defaults to an empty layer.
+#' @return A tibble: the [sd_variables()] columns plus `equation`.
+#' @examples
+#' ex <- sd_example("sir")
+#' sd_equation_table(ex$structure, ex$equations, ex$parameters)
+#' @export
+sd_equation_table <- function(structure, equations, parameters = sd_parameters()) {
+  if (!inherits(equations, "sd_equations"))
+    sd_abort("`equations` must come from `sd_equations()`.")
+  out <- sd_variables(structure)
+  eq <- equations$eqns
+  ## ponytail: doc strings are plain text only -- no markdown rendering, no
+  ## i18n. Richer docs would go in the element itself (`doc = ` in stock() etc.)
+  ## as a list, and be formatted here.
+  out$equation <- vapply(out$name, function(n) {
+    e <- eq[[n]] %||% eq[[paste0("init:", n)]]
+    if (!is.null(e)) return(deparse1_(e$rhs))
+    v <- parameters$initials[[n]]
+    if (!is.null(v)) return(deparse1_(v))
+    NA_character_
+  }, character(1), USE.NAMES = FALSE)
+
+  consts <- setdiff(names(parameters$constants), out$name)
+  if (length(consts)) {
+    out <- rbind(out, tibble::tibble(
+      name = consts, type = "constant", units = NA_character_, dims = NA_character_,
+      from = NA_character_, to = NA_character_, doc = NA_character_,
+      equation = vapply(parameters$constants[consts], deparse1_, character(1),
+                        USE.NAMES = FALSE)))
+  }
+  out[] <- lapply(out, unname)
+  out[c("name", "type", "equation", "units", "doc", "dims", "from", "to")]
 }

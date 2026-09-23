@@ -13,7 +13,8 @@ sd_variables(structure, type = NULL)
 (`"stock"`, `"flow"`, `"aux"`, `"lookup"`, `"input"`).}
 }
 \value{
-A tibble with columns `name`, `type`, `units`, `dims`, `from`, `to`.
+A tibble with columns `name`, `type`, `units`, `dims`, `from`, `to`,
+  `doc`.
 }
 \description{
 A tidy view of the structure layer: one row per declared stock, flow,

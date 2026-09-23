@@ -249,7 +249,10 @@ sd_bind <- function(struct, eqns, pars, spec, overrides = list()) {
   }
   init_order <- topo_sort(init_deps, "initial values")
 
-  if (isTRUE(spec$check_units)) check_flow_units(struct, spec$time_unit)
+  if (isTRUE(spec$check_units)) {
+    check_flow_units(struct, spec$time_unit)
+    check_equation_units(struct, eqns, spec$time_unit)
+  }
 
   out_vars <- c(stock_nms, flow_nms, aux_nms, input_nms)
 

@@ -7,14 +7,18 @@ Description: Specify stock-and-flow system dynamics models as three independent
     forms) and parameters (numbers and data) -- and simulate them with one verb.
     Supports subscripted (arrayed) models, graphical lookup functions, exogenous
     data drivers, Vensim-style delay and smoothing built-ins, scenario runs,
-    least-squares calibration and tidy long-format output with 'ggplot2' methods.
+    Monte Carlo and grid parameter sweeps,
+    least-squares calibration, composition and stratification of models, and
+    tidy long-format output with 'ggplot2' methods.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.1)
 Imports:
+    deSolve,
     rlang (>= 1.0.0),
     tibble,
     ggplot2,
+    xml2,
     stats,
     utils
 Suggests:

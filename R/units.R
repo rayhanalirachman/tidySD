@@ -2,9 +2,10 @@
 ## Light-weight unit algebra.
 ##
 ## Units are declared in `sd_structure()` only; constants carry none. So the
-## only check the grammar can honestly make is the structural one: a flow's
+## checks the grammar can honestly make are the structural one -- a flow's
 ## units must equal the units of the stock it moves, per unit of simulation
-## time. Anything left unspecified is simply not checked.
+## time -- and the arithmetic one: an equation's right-hand side must combine
+## its terms consistently. Anything left unspecified is simply not checked.
 ## ---------------------------------------------------------------------------
 
 ## Parse a unit string ("kg*m/second^2", "widget/(person*hour)", "1") into a
@@ -25,6 +26,11 @@ parse_units <- function(u) {
   out[order(names(out))]
 }
 
+## Names that count as no unit at all: "1" parses as a numeric literal already,
+## these are the spellings people write instead (radians are a ratio).
+DIMENSIONLESS <- c("radian", "radians", "rad", "dimensionless", "Dimensionless",
+                   "dmnl", "Dmnl", "unitless")
+
 unit_walk <- function(e, sign) {
   if (is.numeric(e)) {
     if (isTRUE(e == 1)) return(stats::setNames(integer(0), character(0)))
@@ -32,6 +38,7 @@ unit_walk <- function(e, sign) {
   }
   if (is.symbol(e)) {
     nm <- as.character(e)
+    if (nm %in% DIMENSIONLESS) return(stats::setNames(integer(0), character(0)))
     return(stats::setNames(sign, nm))
   }
   if (!is.call(e)) stop("bad unit")
@@ -80,6 +87,91 @@ format_units <- function(u) {
   d <- fmt(den, abs(u[den]))
   if (length(den) > 1L) d <- paste0("(", d, ")")
   paste0(n, "/", d)
+}
+
+## ---------------------------------------------------------------------------
+## The same exponent vectors, propagated through an equation's right-hand side.
+## NULL means "unknown, not checked": it is contagious through `*` and `/`, and
+## ignored by the matching operators, so an equation that touches a unit-less
+## constant or a numeric literal is simply not checked rather than flagged.
+##
+## ponytail: left unchecked (all yield "unknown") -- transcendental and
+## statistical functions (exp/log/sqrt/trig/sd/var), comparisons and logicals,
+## matrix algebra (%*%, outer, crossprod), lookup calls without `out_units`,
+## step/pulse/ramp, numeric literals in `+`/`-`, and min/max/pmin/pmax, whose
+## clamp idiom (`min(rate, Stock)`) is dimensionally sloppy in published models
+## often enough that enforcing it would cry wolf. Extend the two tables below
+## if a real model needs one of them.
+## ---------------------------------------------------------------------------
+
+## Calls whose arguments must agree; the result carries that same unit.
+UNIT_MATCH_FNS <- c("+", "-", "ifelse", "if",
+                    "sum", "mean", "c", "cumsum", "abs", "sign", "range", "rev")
+## Calls that pass their first argument's units straight through.
+UNIT_FIRST_FNS <- c("(", "[", "[[", "as.numeric", "as.vector", "t", "floor",
+                    "ceiling", "round", "trunc", "diag", STATEFUL_FNS)
+
+eq_units <- function(e, env, where) {
+  if (is.symbol(e)) return(env[[as.character(e)]])
+  if (!is.call(e)) return(NULL)
+  op <- as.character(e[[1]])
+  args <- as.list(e)[-1]
+  if (!length(args)) return(NULL)
+
+  if (op %in% c("*", "/") && length(args) == 2L) {
+    a <- eq_units(args[[1]], env, where)
+    b <- eq_units(args[[2]], env, where)
+    if (is.null(a) || is.null(b)) return(NULL)
+    return(if (op == "*") unit_merge(a, b) else unit_divide(a, b))
+  }
+  if (op == "^") {
+    a <- eq_units(args[[1]], env, where)
+    p <- args[[2]]
+    if (is.null(a) || !is.numeric(p) || length(p) != 1L) return(NULL)
+    return(stats::setNames(as.integer(a * p), names(a)))
+  }
+  if (op %in% UNIT_MATCH_FNS) {
+    if (op %in% c("ifelse", "if")) args <- args[-1]
+    us <- lapply(args, eq_units, env = env, where = where)
+    ref <- NULL; ref_arg <- NULL
+    for (i in seq_along(us)) {
+      if (is.null(us[[i]])) next
+      if (is.null(ref)) { ref <- us[[i]]; ref_arg <- args[[i]]; next }
+      if (!units_equal(ref, us[[i]]))
+        sd_abort(
+          sprintf("Unit mismatch in %s: `%s` is '%s' but `%s` is '%s'.",
+                  where, deparse1_(ref_arg), format_units(ref),
+                  deparse1_(args[[i]]), format_units(us[[i]])),
+          i = sprintf("Terms combined with `%s` must share units.", op))
+    }
+    return(ref)
+  }
+  if (op %in% UNIT_FIRST_FNS) return(eq_units(args[[1]], env, where))
+  env[[op]]  # a lookup called by name, if it declared `out_units`
+}
+
+## Check every equation right-hand side for internal consistency, and against
+## the units declared for the variable it defines.
+check_equation_units <- function(struct, eqns, time_unit) {
+  env <- list()
+  for (v in struct$vars) {
+    u <- parse_units(if (identical(v$type, "lookup")) v$out_units else v$units)
+    if (!is.null(u)) env[[v$name]] <- u
+  }
+  if (!is.null(time_unit) && nzchar(time_unit)) {
+    env$t <- env$dt <- stats::setNames(1L, time_unit)
+  }
+  for (e in eqns$eqns) {
+    where <- if (e$is_init) sprintf("the initial value of '%s'", e$name)
+             else sprintf("the equation for '%s'", e$name)
+    u <- eq_units(e$rhs, env, where)
+    decl <- env[[e$name]]
+    if (!is.null(u) && !is.null(decl) && !units_equal(u, decl))
+      sd_abort(sprintf("Unit mismatch in %s: the right-hand side works out to '%s'.",
+                       where, format_units(u)),
+               x = sprintf("'%s' is declared '%s'.", e$name, format_units(decl)))
+  }
+  invisible(NULL)
 }
 
 ## Check every flow against the stock(s) it is wired to.

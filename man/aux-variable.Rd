@@ -4,7 +4,7 @@
 \alias{aux}
 \title{Declare an auxiliary variable}
 \usage{
-aux(name, units = NULL, dims = NULL, label = NULL)
+aux(name, units = NULL, dims = NULL, label = NULL, doc = NULL)
 }
 \arguments{
 \item{name}{Name of the auxiliary.}
@@ -14,6 +14,8 @@ aux(name, units = NULL, dims = NULL, label = NULL)
 \item{dims}{Character vector of subscript dimensions.}
 
 \item{label}{Optional human-readable label.}
+
+\item{doc}{Optional one-line description, surfaced by [sd_equation_table()].}
 }
 \value{
 An `sd_element` to be passed to [sd_structure()].

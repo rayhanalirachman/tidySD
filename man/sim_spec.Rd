@@ -8,7 +8,7 @@ sim_spec(
   start = 0,
   stop = 100,
   dt = 1,
-  method = c("euler", "rk4"),
+  method = c("euler", "rk4", "lsoda", "rk45"),
   time_unit = NULL,
   saveat = NULL,
   check_units = TRUE
@@ -19,7 +19,12 @@ sim_spec(
 
 \item{dt}{Integration step.}
 
-\item{method}{`"euler"` or `"rk4"`.}
+\item{method}{`"euler"` or `"rk4"` (fixed step, `dt`), or `"lsoda"` /
+`"rk45"` to hand the integration to the 'deSolve' package: adaptive step
+size, and in `"lsoda"`'s case automatic stiff/non-stiff switching. With
+those two, `dt` only sets the output grid; the solver picks its own steps,
+so the queue built-ins `delay_fixed()` and `previous()` are not available
+and discontinuities are not treated specially.}
 
 \item{time_unit}{Name of the time unit (`"day"`, `"year"`, ...). Used for the
 flow-versus-stock unit check and for axis labels.}
@@ -38,4 +43,6 @@ step and method, and how often to save.
 }
 \examples{
 sim_spec(start = 0, stop = 100, dt = 0.125, method = "euler", time_unit = "day")
+## adaptive, stiff-capable, via deSolve
+sim_spec(start = 0, stop = 100, dt = 0.125, method = "lsoda", time_unit = "day")
 }
