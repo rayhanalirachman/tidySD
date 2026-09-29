@@ -40,6 +40,15 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="tidysd-development-version">tidysd (development version)<a class="anchor" aria-label="anchor" href="#tidysd-development-version"></a></h2>
+<ul><li>
+<code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> on an <code><a href="../reference/sd_diagram.html">sd_diagram()</a></code> draws a laid-out diagram: material chains with pipes, valves and clouds for a stock-and-flow diagram; a circular layout with shaded, badged feedback loops for a causal loop diagram. <code>theme = "soft"</code> (default), <code>"oi"</code> (Okabe-Ito) or <code>"plain"</code> (the old layered plot); <code>initials =</code> puts start values on stocks. <code><a href="../reference/save_diagram.html">save_diagram()</a></code> writes it as a PNG at its natural size.</li>
+<li>
+<code>sd_diagram(type = "cld")</code> now links each flow to its stocks (<code>+</code> into the stock it fills, <code>-</code> into the one it drains), so loops through stocks close.</li>
+<li>
+<code><a href="../reference/sd_diagram.html">sd_diagram()</a></code> no longer needs <code>equations</code>; without them it gives the stock-and-flow wiring alone.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="tidysd-010">tidysd 0.1.0<a class="anchor" aria-label="anchor" href="#tidysd-010"></a></h2>
 <p>First release.</p>
 <ul><li>Three independent model layers – <code><a href="../reference/sd_structure.html">sd_structure()</a></code>, <code><a href="../reference/sd_equations.html">sd_equations()</a></code>, <code><a href="../reference/sd_parameters.html">sd_parameters()</a></code> – bound and validated inside a single <code><a href="../reference/simulate.html">simulate()</a></code> verb.</li>
@@ -55,7 +64,8 @@
 <li>Tidy long-format output with <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> methods, plus <code><a href="../reference/sd_diagram.html">sd_diagram()</a></code> for stock-and-flow and causal-loop diagrams read out of the model.</li>
 <li>A catalogue of 22 worked models, <code><a href="../reference/sd_example.html">sd_example()</a></code> / <code><a href="../reference/sd_example_run.html">sd_example_run()</a></code>, each verified against an independently hand-coded integration of the original.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

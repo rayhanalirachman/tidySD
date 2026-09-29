@@ -4,14 +4,16 @@
 asking you to draw it. \`type = "sfd"\` gives the stock-and-flow diagram
 (stocks, flows, and the variables that set each rate); \`type = "cld"\`
 gives the causal loop diagram (every variable, one edge per dependency,
-signed where the sign is unambiguous).
+signed where the sign is unambiguous). In a CLD each flow also links to
+the stocks it moves: \`+\` into the stock it fills, \`-\` into the stock
+it drains, so loops through stocks close.
 
 ## Usage
 
 ``` r
 sd_diagram(
   structure,
-  equations,
+  equations = sd_equations(),
   parameters = sd_parameters(),
   type = c("sfd", "cld")
 )
@@ -25,7 +27,8 @@ sd_diagram(
 
 - equations:
 
-  An \[sd_equations()\] object.
+  An \[sd_equations()\] object. Defaults to an empty layer, which gives
+  the stock-and-flow wiring alone.
 
 - parameters:
 

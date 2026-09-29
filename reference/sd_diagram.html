@@ -3,11 +3,15 @@
 you to draw it. `type = "sfd"` gives the stock-and-flow diagram (stocks,
 flows, and the variables that set each rate); `type = "cld"` gives the causal
 loop diagram (every variable, one edge per dependency, signed where the sign
-is unambiguous).'><meta property="og:description" content='`sd_diagram()` reads the wiring out of the bound model rather than asking
+is unambiguous). In a CLD each flow also links to the stocks it moves:
+`+` into the stock it fills, `-` into the stock it drains, so loops through
+stocks close.'><meta property="og:description" content='`sd_diagram()` reads the wiring out of the bound model rather than asking
 you to draw it. `type = "sfd"` gives the stock-and-flow diagram (stocks,
 flows, and the variables that set each rate); `type = "cld"` gives the causal
 loop diagram (every variable, one edge per dependency, signed where the sign
-is unambiguous).'><meta property="og:image" content="https://rayhanalirachman.github.io/tidySD/logo.png"></head><body>
+is unambiguous). In a CLD each flow also links to the stocks it moves:
+`+` into the stock it fills, `-` into the stock it drains, so loops through
+stocks close.'><meta property="og:image" content="https://rayhanalirachman.github.io/tidySD/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -53,14 +57,16 @@ is unambiguous).'><meta property="og:image" content="https://rayhanalirachman.gi
 you to draw it. `type = "sfd"` gives the stock-and-flow diagram (stocks,
 flows, and the variables that set each rate); `type = "cld"` gives the causal
 loop diagram (every variable, one edge per dependency, signed where the sign
-is unambiguous).</p>
+is unambiguous). In a CLD each flow also links to the stocks it moves:
+`+` into the stock it fills, `-` into the stock it drains, so loops through
+stocks close.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sd_diagram</span><span class="op">(</span></span>
 <span>  <span class="va">structure</span>,</span>
-<span>  <span class="va">equations</span>,</span>
+<span>  equations <span class="op">=</span> <span class="fu"><a href="sd_equations.html">sd_equations</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  parameters <span class="op">=</span> <span class="fu"><a href="sd_parameters.html">sd_parameters</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sfd"</span>, <span class="st">"cld"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -75,7 +81,8 @@ is unambiguous).</p>
 
 
 <dt id="arg-equations">equations<a class="anchor" aria-label="anchor" href="#arg-equations"></a></dt>
-<dd><p>An [sd_equations()] object.</p></dd>
+<dd><p>An [sd_equations()] object. Defaults to an empty layer,
+which gives the stock-and-flow wiring alone.</p></dd>
 
 
 <dt id="arg-parameters">parameters<a class="anchor" aria-label="anchor" href="#arg-parameters"></a></dt>

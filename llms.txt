@@ -320,6 +320,8 @@ data.
 - [`autoplot(`*`<sd_diagram>`*`)`](https://rayhanalirachman.github.io/tidySD/reference/autoplot.sd_diagram.md)
   [`plot(`*`<sd_diagram>`*`)`](https://rayhanalirachman.github.io/tidySD/reference/autoplot.sd_diagram.md)
   : Plot a model diagram
+- [`save_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/save_diagram.md)
+  : Save a diagram at its natural size
 - [`sd_export()`](https://rayhanalirachman.github.io/tidySD/reference/sd_export.md)
   : Write a bound model out as XMILE
 
