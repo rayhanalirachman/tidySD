@@ -1,3 +1,16 @@
+# tidysd (development version)
+
+* `autoplot()` on an `sd_diagram()` draws a laid-out diagram: material chains
+  with pipes, valves and clouds for a stock-and-flow diagram; a circular layout
+  with shaded, badged feedback loops for a causal loop diagram. `theme = "soft"`
+  (default), `"oi"` (Okabe-Ito) or `"plain"` (the old layered plot);
+  `initials =` puts start values on stocks. `save_diagram()` writes it as a
+  PNG at its natural size.
+* `sd_diagram(type = "cld")` now links each flow to its stocks (`+` into the
+  stock it fills, `-` into the one it drains), so loops through stocks close.
+* `sd_diagram()` no longer needs `equations`; without them it gives the
+  stock-and-flow wiring alone.
+
 # tidysd 0.1.0
 
 First release.

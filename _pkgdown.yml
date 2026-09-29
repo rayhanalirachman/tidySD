@@ -79,6 +79,7 @@ reference:
   - autoplot.sd_result
   - sd_diagram
   - autoplot.sd_diagram
+  - save_diagram
   - sd_export
 
 - title: The catalogue

@@ -4,17 +4,21 @@
 #' you to draw it. `type = "sfd"` gives the stock-and-flow diagram (stocks,
 #' flows, and the variables that set each rate); `type = "cld"` gives the causal
 #' loop diagram (every variable, one edge per dependency, signed where the sign
-#' is unambiguous).
+#' is unambiguous). In a CLD each flow also links to the stocks it moves:
+#' `+` into the stock it fills, `-` into the stock it drains, so loops through
+#' stocks close.
 #'
 #' @param structure An [sd_structure()] object.
-#' @param equations An [sd_equations()] object.
+#' @param equations An [sd_equations()] object. Defaults to an empty layer,
+#'   which gives the stock-and-flow wiring alone.
 #' @param parameters An [sd_parameters()] object; needed only so that lookups
 #'   and inputs resolve. Defaults to an empty layer.
 #' @param type `"sfd"` or `"cld"`.
 #' @return An object of class `sd_diagram`: a list of `nodes` and `edges`
 #'   tibbles, with [autoplot()] and `plot()` methods.
 #' @export
-sd_diagram <- function(structure, equations, parameters = sd_parameters(),
+sd_diagram <- function(structure, equations = sd_equations(),
+                       parameters = sd_parameters(),
                        type = c("sfd", "cld")) {
   type <- match.arg(type)
   struct <- structure
@@ -53,6 +57,13 @@ sd_diagram <- function(structure, equations, parameters = sd_parameters(),
       if (type == "sfd" && !d %in% nodes$name[nodes$type %in%
             c("stock", "aux", "lookup", "input", "constant")]) next
       add(d, e$name, "information", edge_sign(e$rhs, d))
+    }
+  }
+  if (type == "cld") {
+    for (v in vars) {
+      if (v$type != "flow") next
+      if (!is_boundary(v$from)) add(v$name, v$from, "information", "-")
+      if (!is_boundary(v$to)) add(v$name, v$to, "information", "+")
     }
   }
   out <- list(nodes = nodes,
@@ -110,47 +121,67 @@ print.sd_diagram <- function(x, ...) {
 
 #' Plot a model diagram
 #'
-#' A deliberately plain layered layout: stocks on the spine, everything else
-#' arranged around them. It is meant for reading a model, not for publication.
+#' Stocks and flows run left to right in material chains, with the variables
+#' that set each rate above and constants below. A causal loop diagram is laid
+#' out on a circle ordered to keep each feedback loop on consecutive positions,
+#' with loops shaded and badged `R` (reinforcing), `B` (balancing) or `?`
+#' (polarity unknown).
+#'
+#' Text uses the first installed of Inter, Avenir Next, Helvetica Neue,
+#' Helvetica, Arial and DejaVu Sans when 'systemfonts' is installed, and
+#' `"sans"` otherwise, or when the open device is `pdf()` or `postscript()`.
 #'
 #' @param object An [sd_diagram()].
+#' @param theme `"soft"` (a restrained slate palette with one blue accent),
+#'   `"oi"` (Okabe-Ito, colour-blind safe) or `"plain"` (a bare layered
+#'   layout for quick reading).
+#' @param initials Optional named numeric (or list) of stock start values,
+#'   shown as a chip on each stock of a stock-and-flow diagram, e.g.
+#'   `parameters$initials`.
 #' @param ... Unused.
-#' @return A `ggplot` object.
+#' @return A `ggplot` object; see [save_diagram()] to write it at its natural
+#'   size.
+#' @examples
+#' ex <- sd_example("sir")
+#' d <- sd_diagram(ex$structure, ex$equations, ex$parameters, type = "cld")
+#' p <- autoplot(d)
 #' @method autoplot sd_diagram
 #' @export
-autoplot.sd_diagram <- function(object, ...) {
-  nd <- object$nodes
-  rank <- c(stock = 1, flow = 2, aux = 3, lookup = 4, input = 4, constant = 5)
-  nd$layer <- unname(rank[nd$type])
-  nd$layer[is.na(nd$layer)] <- 3
-  nd <- nd[order(nd$layer, nd$name), ]
-  nd$x <- unlist(lapply(split(nd$name, nd$layer), function(z) seq_along(z) - mean(seq_along(z))))
-  nd$y <- -nd$layer
-  pos <- stats::setNames(seq_len(nrow(nd)), nd$name)
-
-  ed <- object$edges
-  if (nrow(ed)) {
-    ed$x <- nd$x[pos[ed$from]]; ed$y <- nd$y[pos[ed$from]]
-    ed$xend <- nd$x[pos[ed$to]]; ed$yend <- nd$y[pos[ed$to]]
-    ed <- ed[stats::complete.cases(ed[c("x", "y", "xend", "yend")]), , drop = FALSE]
-  }
-
-  p <- ggplot2::ggplot()
-  if (nrow(ed))
-    p <- p + ggplot2::geom_segment(
-      data = ed,
-      ggplot2::aes(x = .data$x, y = .data$y, xend = .data$xend, yend = .data$yend,
-                   linetype = .data$kind),
-      colour = "grey55",
-      arrow = ggplot2::arrow(length = ggplot2::unit(0.12, "cm"), type = "closed"))
-  p + ggplot2::geom_label(data = nd,
-        ggplot2::aes(x = .data$x, y = .data$y, label = .data$name, fill = .data$type),
-        size = 2.6, linewidth = 0.15) +
-    ggplot2::labs(title = object$name, x = NULL, y = NULL) +
-    ggplot2::theme_void()
+autoplot.sd_diagram <- function(object, theme = c("soft", "oi", "plain"),
+                                initials = NULL, ...) {
+  theme <- match.arg(theme)
+  if (theme == "plain") return(plot_plain(object))
+  k <- c(PALETTES[[c(soft = "mono", oi = "oi")[[theme]]]], diagram_fonts())
+  if (identical(object$type, "cld")) render_cld(object, k) else
+    render_sfd(object, k, initials)
 }
 
 #' @rdname autoplot.sd_diagram
 #' @param x An [sd_diagram()].
 #' @export
-plot.sd_diagram <- function(x, ...) print(autoplot(x, ...))
+plot.sd_diagram <- function(x, ...) {
+  if (grDevices::dev.cur() == 1L) grDevices::dev.new()
+  print(autoplot(x, ...))
+}
+
+#' Save a diagram at its natural size
+#'
+#' Writes a PNG sized from the diagram's own layout, so that text keeps the
+#' same size whatever the model. Uses 'ragg' when installed.
+#'
+#' @param p A plot from [autoplot()] on an [sd_diagram()].
+#' @param file Path of the PNG to write.
+#' @param dpi Resolution.
+#' @return `file`, invisibly.
+#' @examples
+#' ex <- sd_example("sir")
+#' p <- autoplot(sd_diagram(ex$structure, ex$equations, ex$parameters))
+#' save_diagram(p, tempfile(fileext = ".png"))
+#' @export
+save_diagram <- function(p, file, dpi = 200) {
+  s <- attr(p, "size_in") %||% c(7, 5)
+  dev <- if (requireNamespace("ragg", quietly = TRUE)) ragg::agg_png else grDevices::png
+  ggplot2::ggsave(file, p, width = max(s[1], 5), height = max(s[2], 3), dpi = dpi,
+                  bg = attr(p, "bg") %||% "white", device = dev)
+  invisible(file)
+}

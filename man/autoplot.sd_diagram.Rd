@@ -5,21 +5,43 @@
 \alias{plot.sd_diagram}
 \title{Plot a model diagram}
 \usage{
-\method{autoplot}{sd_diagram}(object, ...)
+\method{autoplot}{sd_diagram}(object, theme = c("soft", "oi", "plain"), initials = NULL, ...)
 
 \method{plot}{sd_diagram}(x, ...)
 }
 \arguments{
 \item{object}{An [sd_diagram()].}
 
+\item{theme}{`"soft"` (a restrained slate palette with one blue accent),
+`"oi"` (Okabe-Ito, colour-blind safe) or `"plain"` (a bare layered
+layout for quick reading).}
+
+\item{initials}{Optional named numeric (or list) of stock start values,
+shown as a chip on each stock of a stock-and-flow diagram, e.g.
+`parameters$initials`.}
+
 \item{...}{Unused.}
 
 \item{x}{An [sd_diagram()].}
 }
 \value{
-A `ggplot` object.
+A `ggplot` object; see [save_diagram()] to write it at its natural
+  size.
 }
 \description{
-A deliberately plain layered layout: stocks on the spine, everything else
-arranged around them. It is meant for reading a model, not for publication.
+Stocks and flows run left to right in material chains, with the variables
+that set each rate above and constants below. A causal loop diagram is laid
+out on a circle ordered to keep each feedback loop on consecutive positions,
+with loops shaded and badged `R` (reinforcing), `B` (balancing) or `?`
+(polarity unknown).
+}
+\details{
+Text uses the first installed of Inter, Avenir Next, Helvetica Neue,
+Helvetica, Arial and DejaVu Sans when 'systemfonts' is installed, and
+`"sans"` otherwise, or when the open device is `pdf()` or `postscript()`.
+}
+\examples{
+ex <- sd_example("sir")
+d <- sd_diagram(ex$structure, ex$equations, ex$parameters, type = "cld")
+p <- autoplot(d)
 }
