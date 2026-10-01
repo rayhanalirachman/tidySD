@@ -169,8 +169,11 @@ print.sd_diagram <- function(x, ...) {
 #'   (`stock_fill`, `stock_line`, `stock_lw`, `info`, ...); `text` sets every
 #'   text colour and `link` the influence links. Unknown names are an error.
 #' @param ... Unused.
-#' @return A `ggplot` object; see [save_diagram()] to write it at its natural
-#'   size.
+#' @return A `ggplot` object (also of class `sd_diagram_plot`); see
+#'   [save_diagram()] to write it at its natural size. Printed on a smaller
+#'   device or viewport (a plot pane, a knitr chunk), text, lines and arrow
+#'   heads shrink with the drawing (to at most half size), so it reads as a
+#'   scaled-down copy; at or above the natural size it is drawn as is.
 #' @examples
 #' ex <- sd_example("sir")
 #' d <- sd_diagram(ex$structure, ex$equations, ex$parameters, type = "cld")
@@ -198,9 +201,75 @@ autoplot.sd_diagram <- function(object, theme = c("black", "soft", "oi", "plain"
     attr(p, "ragg_fonts") <- ragg
     attr(p, "n_layers") <- length(p$layers)
     attr(p, "redraw") <- function() draw(TRUE)
+    class(p) <- c("sd_diagram_plot", class(p))
     p
   }
   draw(ragg_device())
+}
+
+## Printing: a grob that rebuilds the plot each time it is drawn (so also on a
+## pane resize), with text, strokes and arrow heads scaled down by
+## s = min(1, area / natural size) when the area is smaller than `size_in`:
+## the diagram then shrinks like a vector drawing instead of its text
+## overflowing the boxes. At or above the natural size it draws as before.
+#' @export
+print.sd_diagram_plot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
+  ggplot2::set_last_plot(x)
+  if (newpage) grid::grid.newpage()
+  grDevices::recordGraphics(requireNamespace("tidysd", quietly = TRUE), list(),
+                            getNamespace("tidysd"))
+  g <- grid::gTree(plot = x, cl = "sd_diagram_grob")
+  if (!is.null(vp)) {
+    if (is.character(vp)) grid::seekViewport(vp) else grid::pushViewport(vp)
+    on.exit(grid::upViewport())
+  }
+  grid::grid.draw(g)
+  invisible(x)
+}
+
+#' @exportS3Method grid::makeContent
+makeContent.sd_diagram_grob <- function(x) {
+  p <- x$plot
+  class(p) <- setdiff(class(p), "sd_diagram_plot")
+  area <- c(grid::convertWidth(grid::unit(1, "npc"), "in", TRUE),
+            grid::convertHeight(grid::unit(1, "npc"), "in", TRUE))
+  s <- diagram_scale(attr(p, "size_in"), area)
+  # small fallback-"sans" text vanishes on ragg devices: shrink the full fonts
+  if (s < 1 && isFALSE(attr(p, "ragg_fonts")) && ragg_device() &&
+      length(p$layers) == attr(p, "n_layers")) {
+    p <- attr(p, "redraw")()
+    class(p) <- setdiff(class(p), "sd_diagram_plot")
+    s <- diagram_scale(attr(p, "size_in"), area)
+  }
+  grid::setChildren(x, grid::gList(ggplot2::ggplotGrob(scale_diagram(p, s))))
+}
+
+## ponytail: 2% slack absorbs pixel rounding (save_diagram stays exact); the
+## 0.5 floor keeps the smallest text near 4 pt, below that it overflows instead.
+diagram_scale <- function(size_in, area) {
+  s <- min(1, area / size_in)
+  if (!is.finite(s) || s > 0.98) 1 else max(s, 0.5)
+}
+
+## Multiply every layer's size, linewidth and stroke (set, mapped from the
+## `lw` column, or the geom default) and arrow length by `s`, on clones.
+scale_diagram <- function(p, s) {
+  if (s == 1) return(p)
+  p$layers <- lapply(p$layers, function(l0) {
+    l <- ggplot2::ggproto(NULL, l0)   # a clone: the original plot keeps its sizes
+    for (a in c("size", "linewidth", "stroke")) {
+      if (a %in% names(l$mapping)) {
+        if (is.data.frame(l$data) && "lw" %in% names(l$data)) l$data$lw <- l$data$lw * s
+        next
+      }
+      v <- l$aes_params[[a]] %||% l$geom$default_aes[[a]]
+      if (is.numeric(v)) l$aes_params[[a]] <- v * s
+    }
+    if (inherits(l$geom_params$arrow, "arrow"))
+      l$geom_params$arrow$length <- l$geom_params$arrow$length * s
+    l
+  })
+  p
 }
 
 #' @rdname autoplot.sd_diagram

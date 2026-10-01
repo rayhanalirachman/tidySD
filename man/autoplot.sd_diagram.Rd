@@ -51,8 +51,11 @@ text colour and `link` the influence links. Unknown names are an error.}
 \item{x}{An [sd_diagram()].}
 }
 \value{
-A `ggplot` object; see [save_diagram()] to write it at its natural
-  size.
+A `ggplot` object (also of class `sd_diagram_plot`); see
+  [save_diagram()] to write it at its natural size. Printed on a smaller
+  device or viewport (a plot pane, a knitr chunk), text, lines and arrow
+  heads shrink with the drawing (to at most half size), so it reads as a
+  scaled-down copy; at or above the natural size it is drawn as is.
 }
 \description{
 Stocks and flows run left to right in material chains, with the variables

@@ -2,11 +2,13 @@
 
 S3method(autoplot,sd_diagram)
 S3method(autoplot,sd_result)
+S3method(grid::makeContent,sd_diagram_grob)
 S3method(plot,sd_diagram)
 S3method(plot,sd_result)
 S3method(print,sd_bound)
 S3method(print,sd_calibration)
 S3method(print,sd_diagram)
+S3method(print,sd_diagram_plot)
 S3method(print,sd_equations)
 S3method(print,sd_example)
 S3method(print,sd_parameters)

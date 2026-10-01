@@ -170,3 +170,42 @@ test_that("a font family without the palette's weight falls back to regular", {
                          font_w = "semibold", font_w_const = "medium"), ragg = TRUE)
   expect_identical(c(k$fam_r, k$fam_c), rep("tidysd no such family", 2))
 })
+
+test_that("a diagram printed smaller than its natural size scales text and lines", {
+  skip_if_not_installed("ragg")
+  ex <- sd_example("workforce")
+  d <- sd_diagram(ex$structure, ex$equations, ex$parameters, "sfd")
+  p <- autoplot(d)
+  expect_s3_class(p, "sd_diagram_plot")
+  expect_s3_class(p + ggplot2::labs(caption = "x"), "sd_diagram_plot")
+  # the scale: proportional below the natural size, floored, 1 at or above it
+  sz <- attr(p, "size_in")
+  expect_equal(diagram_scale(sz, sz * 0.7), 0.7)
+  expect_equal(diagram_scale(sz, sz * 0.1), 0.5)
+  expect_equal(diagram_scale(sz, sz * c(2, 0.6)), 0.6)
+  expect_equal(diagram_scale(sz, sz * 1.5), 1)
+  # every set size/linewidth/stroke and arrow halves, on a copy
+  q <- scale_diagram(p, 0.5)
+  sizes <- function(x) unlist(Map(function(l, l0)   # the ones p sets, read from x
+    unlist(l$aes_params[intersect(names(l0$aes_params), c("size", "linewidth", "stroke"))]),
+    x$layers, p$layers))
+  expect_gt(length(sizes(p)), 50)
+  expect_equal(sizes(q), sizes(p) / 2)
+  expect_identical(scale_diagram(p, 1), p)
+  # small and large devices both draw without warnings
+  for (wh in list(c(600, 450), c(3000, 3000))) {
+    f <- tempfile(fileext = ".png")
+    ragg::agg_png(f, width = wh[1], height = wh[2], res = 96)
+    expect_silent(print(p))
+    grDevices::dev.off()
+    expect_true(file.exists(f))
+  }
+  # save_diagram() (device at the natural size) draws exactly the unscaled plot
+  a <- save_diagram(p, tempfile(fileext = ".png"))
+  b <- tempfile(fileext = ".png")
+  p0 <- if (isFALSE(attr(p, "ragg_fonts"))) attr(p, "redraw")() else p
+  class(p0) <- setdiff(class(p0), "sd_diagram_plot"); sz <- attr(p0, "size_in")
+  ggplot2::ggsave(b, p0, width = max(sz[1], 5), height = max(sz[2], 3), dpi = 200,
+                  bg = "transparent", device = ragg::agg_png)
+  expect_identical(unname(tools::md5sum(a)), unname(tools::md5sum(b)))
+})

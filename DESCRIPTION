@@ -18,6 +18,7 @@ Imports:
     rlang (>= 1.0.0),
     tibble,
     ggplot2,
+    grid,
     xml2,
     stats,
     utils
