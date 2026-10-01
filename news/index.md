@@ -7,9 +7,13 @@
   [`sd_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/sd_diagram.md)
   draws a laid-out diagram: material chains with pipes, valves and
   clouds for a stock-and-flow diagram; a circular layout with shaded,
-  badged feedback loops for a causal loop diagram. `theme = "soft"`
-  (default), `"oi"` (Okabe-Ito) or `"plain"` (the old layered plot);
-  `initials =` puts start values on stocks.
+  badged feedback loops for a causal loop diagram. `theme = "black"`
+  (default: black ink, semibold text, continuous corners, flow names
+  above their valves, a thin halo so it reads on dark pages), `"soft"`,
+  `"oi"` (Okabe-Ito) or `"plain"` (the old layered plot); `initials =`
+  puts start values on stocks; `colors = list(...)` overrides palette
+  roles. The page is transparent unless `background =` is set;
+  `title = TRUE` adds a header, `legend = FALSE` drops the key.
   [`save_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/save_diagram.md)
   writes it as a PNG at its natural size.
 - `sd_diagram(type = "cld")` now links each flow to its stocks (`+` into
@@ -17,7 +21,25 @@
   stocks close.
 - [`sd_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/sd_diagram.md)
   no longer needs `equations`; without them it gives the stock-and-flow
-  wiring alone.
+  wiring alone. It now errors clearly when given something other than
+  the model layers (e.g. a whole
+  [`sd_example()`](https://rayhanalirachman.github.io/tidySD/reference/sd_example.md))
+  or an empty structure.
+- A diagram built with no device open uses plain `"sans"` unless the
+  default device is ragg-capable, so it prints on
+  [`pdf()`](https://rdrr.io/r/grDevices/pdf.html) and
+  [`png()`](https://rdrr.io/r/grDevices/png.html) without errors or
+  warnings;
+  [`save_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/save_diagram.md)
+  redraws it with the full fonts. `colors =` values are checked up
+  front,
+  [`save_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/save_diagram.md)
+  refuses non-`.png` files, and diagrams of more than 30 variables warn
+  once that text may be small.
+- Stock-and-flow layouts get a repair pass: when an influence link would
+  cross another link or run through a variable, that variable is moved
+  and the links re-routed, keeping the change only if the diagram gets
+  cleaner.
 
 ## tidysd 0.1.0
 
