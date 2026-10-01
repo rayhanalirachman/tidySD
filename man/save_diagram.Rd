@@ -4,21 +4,27 @@
 \alias{save_diagram}
 \title{Save a diagram at its natural size}
 \usage{
-save_diagram(p, file, dpi = 200)
+save_diagram(p, file, dpi = 200, background = NULL)
 }
 \arguments{
 \item{p}{A plot from [autoplot()] on an [sd_diagram()].}
 
-\item{file}{Path of the PNG to write.}
+\item{file}{Path of the PNG to write; must end in `.png`. For PDF or SVG,
+open that device yourself and `print(p)`.}
 
 \item{dpi}{Resolution.}
+
+\item{background}{`NULL` to keep the plot's own (transparent by default),
+or a colour.}
 }
 \value{
 `file`, invisibly.
 }
 \description{
 Writes a PNG sized from the diagram's own layout, so that text keeps the
-same size whatever the model. Uses 'ragg' when installed.
+same size whatever the model. Uses 'ragg' when installed, redrawing the plot
+with its full fonts if it was built for a device that lacks them. The PNG is
+transparent unless a background was given here or to [autoplot()].
 }
 \examples{
 ex <- sd_example("sir")

@@ -25,7 +25,7 @@ test_that("sfd and cld build, and the cld links flows to their stocks", {
 
 test_that("autoplot returns a ggplot for every theme", {
   m <- sir()
-  for (type in c("sfd", "cld")) for (th in c("soft", "oi", "plain")) {
+  for (type in c("sfd", "cld")) for (th in c("black", "soft", "oi", "plain")) {
     p <- autoplot(sd_diagram(m$st, m$eq, m$pa, type = type), theme = th,
                   initials = m$pa$initials)
     expect_s3_class(p, "ggplot")
@@ -60,8 +60,106 @@ test_that("every catalogue model draws in both types", {
   }
 })
 
-test_that("save_diagram writes a png", {
+test_that("diagrams are transparent unless given a background", {
   m <- sir()
-  f <- save_diagram(autoplot(sd_diagram(m$st, m$eq, m$pa)), tempfile(fileext = ".png"))
+  d <- sd_diagram(m$st, m$eq, m$pa)
+  p <- autoplot(d)
+  expect_equal(attr(p, "bg"), "transparent")
+  expect_true(is.na(ggplot2::calc_element("plot.background", ggplot2::theme_get() + p$theme)$fill))
+  expect_equal(attr(autoplot(d, background = "white"), "bg"), "white")
+  f <- save_diagram(p, tempfile(fileext = ".png"))
   expect_true(file.exists(f))
+})
+
+test_that("no title by default; title = TRUE and legend = FALSE are honoured", {
+  m <- sir()
+  d <- sd_diagram(m$st, m$eq, m$pa)
+  labs_of <- function(p) unlist(lapply(p$layers, function(l) l$aes_params$label))
+  expect_false("SIR" %in% labs_of(autoplot(d)))
+  expect_true("SIR" %in% labs_of(autoplot(d, title = TRUE)))
+  expect_false("Influence" %in% labs_of(autoplot(d, legend = FALSE)))
+  expect_null(autoplot(d, theme = "plain")$labels$title)
+})
+
+test_that("influence links never run through another node", {
+  for (id in c("sales_agents", "lotka_volterra", "capability_trap", "workforce")) {
+    ex <- sd_example(id)
+    q <- layout_quality(autoplot(sd_diagram(ex$structure, ex$equations, ex$parameters)))
+    expect_equal(q[["node"]], 0, label = id)
+  }
+})
+
+test_that("stock labels wrap at CamelCase and underscores", {
+  expect_equal(wrap_label("TotalCumulativeSales", 16), "TotalCumulative\nSales")
+  expect_equal(wrap_label("months_of_expenses_per_sale"), "months of\nexpenses per\nsale")
+})
+
+test_that("black is the default theme, and colors= overrides roles", {
+  expect_equal(eval(formals(autoplot.sd_diagram)$theme)[1], "black")
+  m <- sir()
+  d <- sd_diagram(m$st, m$eq, m$pa)
+  cols <- function(p) unlist(lapply(p$layers, function(l) l$aes_params$colour))
+  expect_false("#FF0000" %in% cols(autoplot(d)))
+  expect_true("#FF0000" %in% cols(autoplot(d, colors = list(link = "#FF0000"))))
+  expect_s3_class(autoplot(d, theme = "soft", colors = list(stock_fill = "#FFF4D6")), "ggplot")
+  expect_error(autoplot(d, colors = list(not_a_role = "red")), "Unknown colour role")
+  expect_error(autoplot(d, colors = list("red")), "named list")
+})
+
+test_that("a plot built with no device open prints on pdf() and png() without warnings", {
+  m <- sir()
+  d <- sd_diagram(m$st, m$eq, m$pa, type = "cld")
+  rlang::local_options(device = grDevices::pdf)   # a default that is not ragg-capable
+  while (grDevices::dev.cur() > 1L) grDevices::dev.off()
+  p <- autoplot(d)
+  expect_false(attr(p, "ragg_fonts"))
+  for (open in list(grDevices::pdf, grDevices::png)) {
+    f <- tempfile()
+    open(f)
+    expect_no_warning(print(p))
+    grDevices::dev.off()
+  }
+  # save_diagram() still redraws with the full fonts
+  skip_if_not_installed("ragg")
+  expect_true(file.exists(save_diagram(p, tempfile(fileext = ".png"))))
+})
+
+test_that("sd_diagram() rejects the wrong kind of input", {
+  m <- sir()
+  ex <- list(structure = m$st, equations = m$eq, parameters = m$pa)
+  expect_error(sd_diagram(ex), "must be an `sd_structure\\(\\)`", class = "tidysd_error")
+  expect_error(sd_diagram(sd_structure()), "no variables", class = "tidysd_error")
+  expect_error(sd_diagram(m$st, m$pa), "`equations` must be", class = "tidysd_error")
+  expect_error(sd_diagram(m$st, m$eq, m$eq), "`parameters` must be", class = "tidysd_error")
+})
+
+test_that("colors= values are checked", {
+  d <- sd_diagram(sir()$st)
+  for (v in list("notacolor", 3, NA, c("red", "blue")))
+    expect_error(autoplot(d, colors = list(stock_fill = v)), "colors\\$stock_fill", class = "tidysd_error")
+  expect_error(autoplot(d, colors = list(stock_lw = "thick")), "colors\\$stock_lw", class = "tidysd_error")
+  expect_s3_class(autoplot(d, colors = list(stock_fill = "grey90", stock_lw = 1)), "ggplot")
+})
+
+test_that("save_diagram() writes PNG only", {
+  p <- autoplot(sd_diagram(sir()$st))
+  expect_error(save_diagram(p, tempfile(fileext = ".pdf")), "PNG only", class = "tidysd_error")
+  expect_true(file.exists(save_diagram(p, tempfile(fileext = ".PNG"))))
+})
+
+test_that("large diagrams warn that text may be small", {
+  rlang::local_options(rlib_warning_verbosity = "verbose")
+  st <- do.call(sd_structure, lapply(paste0("a", 1:35), aux))
+  d <- sd_diagram(st, type = "cld")
+  expect_warning(autoplot(d, theme = "plain"), "Large diagram \\(35 variables\\)")
+  expect_no_warning(autoplot(sd_diagram(sir()$st), theme = "plain"))
+})
+
+test_that("layout repair moves a variable to remove a link crossing", {
+  m <- sd_structure(stock("K"), stock("L"), flow("pop.growth", to = "L"), flow("investment", to = "K"),
+                    flow("depreciation", from = "K"), aux("Y"))
+  eq <- sd_equations(Y ~ K^alpha * L^beta, investment ~ s*Y, depreciation ~ delta*K, pop.growth ~ n*L)
+  pa <- sd_parameters(constant(alpha = 0.5, beta = 0.5, s = 0.2, delta = 0.05, n = 0.02), initial(K = 100, L = 100))
+  q <- layout_quality(autoplot(sd_diagram(m, eq, pa, "sfd"), initials = c(K = 100, L = 100)))
+  expect_equal(q[["node"]] + q[["link"]], 0)
 })
