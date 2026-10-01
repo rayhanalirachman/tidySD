@@ -15,7 +15,10 @@
   roles. The page is transparent unless `background =` is set;
   `title = TRUE` adds a header, `legend = FALSE` drops the key.
   [`save_diagram()`](https://rayhanalirachman.github.io/tidySD/reference/save_diagram.md)
-  writes it as a PNG at its natural size.
+  writes it as a PNG at its natural size. Printed on a smaller device
+  (an RStudio plot pane, a knitr chunk, `ggsave()` at a small size), the
+  diagram’s text, lines and arrow heads shrink with it (down to half
+  size) and follow pane resizes, so text no longer overflows its boxes.
 - `sd_diagram(type = "cld")` now links each flow to its stocks (`+` into
   the stock it fills, `-` into the one it drains), so loops through
   stocks close.
