@@ -170,7 +170,10 @@ font_weights <- function(k, ragg = ragg_device()) {
   if (!k$sf || !ragg) return(k)
   reg <- function(w) { if (is.null(w) || w == "normal") return(k$fam)
     nm <- paste0("tidysd_", k$fam, "_", w)
-    systemfonts::register_variant(nm, k$fam, weight = w); nm }
+    # a family without that weight (e.g. DejaVu Sans has no semibold) keeps regular
+    ok <- tryCatch({ systemfonts::register_variant(nm, k$fam, weight = w); TRUE },
+                   error = function(e) FALSE)
+    if (ok) nm else k$fam }
   k$fam_r <- reg(k$font_w); k$fam_c <- reg(k$font_w_const %||% k$font_w)
   k
 }

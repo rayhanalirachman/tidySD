@@ -163,3 +163,10 @@ test_that("layout repair moves a variable to remove a link crossing", {
   q <- layout_quality(autoplot(sd_diagram(m, eq, pa, "sfd"), initials = c(K = 100, L = 100)))
   expect_equal(q[["node"]] + q[["link"]], 0)
 })
+
+test_that("a font family without the palette's weight falls back to regular", {
+  skip_if_not_installed("systemfonts")
+  k <- font_weights(list(fam = "tidysd no such family", sf = TRUE,
+                         font_w = "semibold", font_w_const = "medium"), ragg = TRUE)
+  expect_identical(c(k$fam_r, k$fam_c), rep("tidysd no such family", 2))
+})
